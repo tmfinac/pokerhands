@@ -1,29 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-    <meta charset="utf-8">
-    <title>Poker Hand Checker</title>
+    <meta charset="UTF-8">
+    <title>5カードポーカー役判定</title>
+    <style>
+        img.card {
+            width: 80px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .slot {
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
 
-<h2>選択中のカード</h2>
-<div>
-    {% for c in selected %}
-        <img src="/static/cards/{{ c }}.png" width="80">
+<h2>選択したカード</h2>
+<div class="slot">
+    {% for card in selected %}
+        <img class="card" src="{{ url_for('static', filename='cards/' + card + '.png') }}">
     {% endfor %}
 </div>
 
-<hr>
-
-<h2>カードを選ぶ</h2>
+<h2>カードを選択</h2>
 <div>
-    {% for c in cards %}
-        <a href="/add/{{ c }}">
-            <img src="/static/cards/{{ c }}.png" width="80">
+    {% for card in cards %}
+        <a href="/add/{{ card }}">
+            <img class="card" src="{{ url_for('static', filename='cards/' + card + '.png') }}">
         </a>
     {% endfor %}
 </div>
 
+<br>
 <a href="/reset">リセット</a>
 
 </body>

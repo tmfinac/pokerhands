@@ -20,7 +20,6 @@ def add(card):
         selected_cards.append(card)
     return redirect("/")
 
-
 @app.route("/reset")
 def reset():
     selected_cards.clear()
