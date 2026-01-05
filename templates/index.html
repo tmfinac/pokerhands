@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Poker Hand Checker</title>
+</head>
+<body>
+
+<h2>選択中のカード</h2>
+<div>
+    {% for c in selected %}
+        <img src="/static/cards/{{ c }}.png" width="80">
+    {% endfor %}
+</div>
+
+<hr>
+
+<h2>カードを選ぶ</h2>
+<div>
+    {% for c in cards %}
+        <a href="/add/{{ c }}">
+            <img src="/static/cards/{{ c }}.png" width="80">
+        </a>
+    {% endfor %}
+</div>
+
+<a href="/reset">リセット</a>
+
+</body>
+</html>
