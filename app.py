@@ -8,19 +8,47 @@ HTML = """
 <head>
   <meta charset="UTF-8">
   <title>5カードポーカー役判定</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 20px; }
+    .slots, .cards { display: flex; gap: 12px; margin-bottom: 20px; }
+    .card {
+      width: 70px; height: 100px;
+      border: 2px solid #222;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: bold;
+      background: white;
+      cursor: pointer;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+    }
+    .slot {
+      background: #f0f0f0;
+      cursor: default;
+    }
+    .result { font-size: 22px; font-weight: bold; margin-top: 20px; }
+  </style>
 </head>
 <body>
 <h1>5カードポーカー役判定</h1>
 
-<div id="slots"></div>
-
-<div>
-  {% for c in cards %}
-    <button onclick="addCard('{{c}}')">{{c}}</button>
+<!-- 選択されたカード表示 -->
+<div class="slots">
+  {% for i in range(5) %}
+    <div class="card slot" id="slot{{i}}"></div>
   {% endfor %}
 </div>
 
-<p id="result"></p>
+<!-- トランプカード（ランク） -->
+<div class="cards">
+  {% for c in cards %}
+    <div class="card" onclick="addCard('{{c}}')">{{c}}</div>
+  {% endfor %}
+</div>
+
+<div class="result" id="result"></div>
 
 <script>
 let slots = [];
@@ -28,15 +56,17 @@ let slots = [];
 function addCard(card) {
   if (slots.length >= 5) return;
   slots.push(card);
-  document.getElementById("slots").innerText = slots.join(" ");
+  document.getElementById('slot' + (slots.length - 1)).innerText = card;
 
   if (slots.length === 5) {
-    fetch("/judge", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({cards: slots})
-    }).then(r => r.json()).then(d => {
-      document.getElementById("result").innerText = d.result;
+    fetch('/judge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cards: slots })
+    })
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('result').innerText = d.result;
     });
   }
 }
@@ -56,6 +86,7 @@ def judge():
     cards = request.json["cards"]
     return jsonify(result=judge_hand(cards))
 
+
 def judge_hand(cards):
     from collections import Counter
     counts = sorted(Counter(cards).values(), reverse=True)
@@ -72,5 +103,8 @@ def judge_hand(cards):
         return "ワンペア"
     return "役ではありません"
 
-if __name__ == "__main__":
-    app.run()
+
+if __name__ == '__main__':
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
