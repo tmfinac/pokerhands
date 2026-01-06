@@ -1,61 +1,84 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>ポーカー役判定</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .marks button, .cards button { margin: 5px; padding: 10px 15px; font-size: 16px; }
-        #selected-cards { margin-top: 15px; font-weight: bold; font-size: 18px; }
-        #result { margin-top: 10px; font-size: 20px; color: blue; }
-    </style>
+<meta charset="UTF-8">
+<title>5カードポーカー役判定</title>
+<style>
+body { font-family: 'Helvetica', 'Arial', sans-serif; background-color: #f5f5f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+h2 { color: #333; margin-bottom: 10px; }
+.cards-container { display: flex; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+img.card { width: 110px; margin: 8px; cursor: pointer; border-radius: 8px; transition: transform 0.2s, box-shadow 0.2s; }
+img.card:hover { transform: scale(1.1); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+.result { font-size: 3em; font-weight: bold; color: #ff5722; margin: 20px 0; text-shadow: 2px 2px 5px rgba(0,0,0,0.3); text-align: center; }
+button { background-color: #2196f3; color: white; border: none; padding: 18px 36px; font-size: 1.3em; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, transform 0.2s; }
+button:hover { background-color: #1976d2; transform: scale(1.05); }
+.mark-btn { font-size: 2em; padding: 10px 20px; margin: 5px; cursor: pointer; border-radius: 8px; background-color: #ff9800; color: white; border: none; }
+.mark-btn:hover { background-color: #fb8c00; }
+@media (max-width: 600px) { img.card { width: 90px; margin: 6px; } .result { font-size: 2.5em; } button { padding: 14px 28px; font-size: 1.1em; } }
+@media (max-width: 400px) { img.card { width: 70px; margin: 4px; } .result { font-size: 2em; } button { padding: 12px 24px; font-size: 1em; } }
+</style>
 </head>
 <body>
 
-<h2>マークを選択してください</h2>
-<div class="marks">
-    {% for mark in marks %}
-    <a href="{{ url_for('select_mark', mark=mark) }}"><button>{{ mark }}</button></a>
+<h2>選択したカード</h2>
+<div id="selected" class="cards-container">
+    {% for card in selected %}
+        <img class="card" src="{{ url_for('static', filename='cards/' + card + '.png') }}">
     {% endfor %}
 </div>
 
-{% if current_mark %}
-<h3>{{ current_mark }} のカードを選択してください</h3>
-<div class="cards" id="cards">
-    {% for card in cards %}
-    <button onclick="selectCard('{{ card }}')">{{ card }}</button>
-    {% endfor %}
-</div>
-{% endif %}
+<p id="result" class="result">{% if result %}役判定: {{ result }}{% endif %}</p>
 
-<div>
-    <h3>選択カード:</h3>
-    <div id="selected-cards">{{ selected | join(", ") }}</div>
-
-    <h3>役:</h3>
-    <div id="result">{{ result }}</div>
+<h2>マークを選択</h2>
+<div id="mark-container" class="cards-container">
+    <button class="mark-btn" onclick="showCards('H')">♥</button>
+    <button class="mark-btn" onclick="showCards('D')">♦</button>
+    <button class="mark-btn" onclick="showCards('C')">♣</button>
+    <button class="mark-btn" onclick="showCards('S')">♠</button>
 </div>
 
-<div style="margin-top:20px;">
-    <a href="{{ url_for('reset') }}"><button>リセット</button></a>
+<h2>カードを選択</h2>
+<div id="cards-container" class="cards-container">
+    <!-- ここに JS で13枚カードを表示 -->
 </div>
+
+<form action="{{ url_for('reset') }}" method="get" style="margin-top: 20px;">
+    <button type="submit">リセット</button>
+</form>
 
 <script>
-function selectCard(card) {
-    fetch("/add_ajax/" + card)
-    .then(response => response.json())
+const numbers = ['1','2','3','4','5','6','7','8','9','10','J','Q','K'];
+
+function showCards(mark) {
+    const container = document.getElementById("cards-container");
+    container.innerHTML = "";
+    numbers.forEach(num => {
+        const card = num + mark;
+        const img = document.createElement("img");
+        img.src = `/static/cards/${card}.png`;
+        img.className = "card";
+        img.onclick = () => addCard(card);
+        container.appendChild(img);
+    });
+}
+
+function addCard(card) {
+    fetch(`/add_ajax/${card}`)
+    .then(res => res.json())
     .then(data => {
-        // 選択カードを更新
-        document.getElementById("selected-cards").textContent = data.selected.join(", ");
+        // 選択したカードを更新
+        const selectedDiv = document.getElementById("selected");
+        selectedDiv.innerHTML = "";
+        data.selected.forEach(c => {
+            const img = document.createElement("img");
+            img.src = `/static/cards/${c}.png`;
+            img.className = "card";
+            selectedDiv.appendChild(img);
+        });
 
-        // 役を更新
-        document.getElementById("result").textContent = data.result;
-
-        // 5枚選んだらカード選択ボタンを無効化
-        if (data.selected.length >= 5) {
-            const buttons = document.querySelectorAll("#cards button");
-            buttons.forEach(btn => btn.disabled = true);
-        }
+        // 役判定を更新
+        const resultP = document.getElementById("result");
+        resultP.textContent = data.result ? "役判定: " + data.result : "";
     });
 }
 </script>
