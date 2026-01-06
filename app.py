@@ -3,7 +3,7 @@ from flask_session import Session
 from collections import Counter
 import time
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates")
 app.secret_key = "supersecretkey"
 
 # サーバーサイドセッション設定
@@ -24,7 +24,7 @@ def card_filename(card):
     mark = card[0]
     rank = card[1:]
     rank_map = {'A':'1','J':'11','Q':'12','K':'13'}
-    rank_num = rank_map.get(rank, rank)  # rank が "2"〜"10" ならそのまま
+    rank_num = rank_map.get(rank, rank)
     return f"{rank_num}{mark}.png"
 
 app.jinja_env.globals.update(card_filename=card_filename)
@@ -74,8 +74,8 @@ def index():
 @app.route("/select_mark/<mark>")
 def select_mark(mark):
     session["current_mark"] = mark
-    mark_cards = [mark+n for n in numbers]
-    mark_cards_images = [url_for('static', filename='cards/'+card_filename(c), t=int(time.time())) for c in mark_cards]
+    mark_cards = [mark + n for n in numbers]
+    mark_cards_images = [url_for('static', filename=f'cards/{card_filename(card)}', t=int(time.time())) for card in mark_cards]
     return render_template("index.html",
                            marks=marks,
                            current_mark=mark,
