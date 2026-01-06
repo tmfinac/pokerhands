@@ -1,63 +1,58 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>ポーカー役判定</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .marks button, .cards button { margin: 5px; padding: 5px; font-size: 16px; cursor: pointer; }
-        .cards button img { width: 60px; height: auto; }
-        #selected-cards { margin-top: 15px; font-weight: bold; font-size: 18px; }
-        #result { margin-top: 10px; font-size: 20px; color: blue; }
-    </style>
+<meta charset="UTF-8">
+<title>ポーカー役判定</title>
+<style>
+body { font-family: Arial, sans-serif; padding:20px; }
+.marks button { margin:5px; padding:10px 15px; font-size:16px; }
+#cards img { width:80px; margin:5px; cursor:pointer; }
+#selected-cards { margin-top:15px; font-weight:bold; font-size:18px; }
+#result { margin-top:10px; font-size:20px; color:blue; }
+</style>
 </head>
 <body>
 
 <h2>マークを選択してください</h2>
 <div class="marks">
-    {% for mark in marks %}
-        <a href="{{ url_for('select_mark', mark=mark) }}"><button>{{ mark }}</button></a>
-    {% endfor %}
+{% for mark in marks %}
+<a href="{{ url_for('select_mark', mark=mark) }}"><button>{{ mark }}</button></a>
+{% endfor %}
 </div>
 
 {% if current_mark %}
 <h3>{{ current_mark }} のカードを選択してください</h3>
-<div class="cards" id="cards">
-    {% for card in cards %}
-    <button onclick="selectCard('{{ card }}')">
-        <img src="{{ url_for('static', filename='cards/' ~ card ~ '.png') }}" alt="{{ card }}">
-    </button>
-    {% endfor %}
+<div id="cards">
+{% for card in cards %}
+<img src="{{ url_for('static', filename='cards/' ~ card ~ '.png') }}"
+     alt="{{ card }}"
+     onclick="selectCard('{{ card }}')">
+{% endfor %}
 </div>
 {% endif %}
 
 <div>
-    <h3>選択カード:</h3>
-    <div id="selected-cards">{{ selected | join(", ") }}</div>
-
-    <h3>役:</h3>
-    <div id="result">{{ result }}</div>
+<h3>選択カード:</h3>
+<div id="selected-cards">{{ selected | join(', ') }}</div>
+<h3>役:</h3>
+<div id="result">{{ result }}</div>
 </div>
 
 <div style="margin-top:20px;">
-    <a href="{{ url_for('reset') }}"><button>リセット</button></a>
+<a href="{{ url_for('reset') }}"><button>リセット</button></a>
 </div>
 
 <script>
 function selectCard(card) {
     fetch("/add_ajax/" + card)
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
-        // 選択カードを更新
         document.getElementById("selected-cards").textContent = data.selected.join(", ");
-
-        // 役を更新
         document.getElementById("result").textContent = data.result;
 
-        // 5枚選んだらカード選択ボタンを無効化
-        if (data.selected.length >= 5) {
-            const buttons = document.querySelectorAll("#cards button");
-            buttons.forEach(btn => btn.disabled = true);
+        // 5枚選んだらクリック無効化
+        if(data.selected.length>=5){
+            document.querySelectorAll("#cards img").forEach(img=>img.style.pointerEvents="none");
         }
     });
 }
