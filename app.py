@@ -11,16 +11,14 @@ def index():
 
 @app.route("/add/<card>")
 def add(card):
-    if len(selected_cards) < 5:
+    if card not in selected_cards and len(selected_cards) < 5:
         selected_cards.append(card)
-    # JSONで選択カードを返す
     return jsonify(selected=selected_cards)
 
 @app.route("/reset")
 def reset():
     selected_cards.clear()
     return jsonify(selected=selected_cards)
-
 
 if __name__ == "__main__":
     app.run(debug=True)

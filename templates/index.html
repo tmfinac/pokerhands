@@ -55,7 +55,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         img.className = "card";
                         selectedDiv.appendChild(img);
                     });
-                });
+                })
+                .catch(err => console.error("通信エラー:", err));
         });
     });
 
@@ -63,9 +64,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("reset-btn").addEventListener("click", () => {
         fetch("/reset")
             .then(res => res.json())
-            .then(data => {
+            .then(() => {
                 selectedDiv.innerHTML = "";
-            });
+            })
+            .catch(err => console.error("通信エラー:", err));
     });
 });
 </script>
