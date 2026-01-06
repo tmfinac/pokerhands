@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Poker Hands</title>
+    <title>5カードポーカー役判定</title>
     <style>
         img.card {
             width: 80px;
@@ -12,16 +12,12 @@
         .slot {
             margin-bottom: 20px;
         }
-        button {
-            padding: 5px 10px;
-            font-size: 16px;
-        }
     </style>
 </head>
 <body>
 
 <h2>選択したカード</h2>
-<div class="slot" id="selected-cards">
+<div class="slot">
     {% for card in selected %}
         <img class="card" src="{{ url_for('static', filename='cards/' + card + '.png') }}">
     {% endfor %}
@@ -30,47 +26,14 @@
 <h2>カードを選択</h2>
 <div>
     {% for card in cards %}
-        <img class="card selectable" data-card="{{ card }}" src="{{ url_for('static', filename='cards/' + card + '.png') }}">
+        <a href="{{ url_for('add', card=card) }}">
+            <img class="card" src="{{ url_for('static', filename='cards/' + card + '.png') }}">
+        </a>
     {% endfor %}
 </div>
 
 <br>
-<button id="reset-btn">リセット</button>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const selectedDiv = document.getElementById("selected-cards");
-
-    // カード選択
-    document.querySelectorAll(".selectable").forEach(card => {
-        card.addEventListener("click", () => {
-            const cardValue = card.dataset.card;
-            fetch(`/add/${cardValue}`)
-                .then(res => res.json())
-                .then(data => {
-                    selectedDiv.innerHTML = "";
-                    data.forEach(c => {
-                        const img = document.createElement("img");
-                        img.src = `/static/cards/${c}.png`;
-                        img.className = "card";
-                        selectedDiv.appendChild(img);
-                    });
-                })
-                .catch(err => console.error("通信エラー:", err));
-        });
-    });
-
-    // リセットボタン
-    document.getElementById("reset-btn").addEventListener("click", () => {
-        fetch("/reset")
-            .then(res => res.json())
-            .then(() => {
-                selectedDiv.innerHTML = "";
-            })
-            .catch(err => console.error("通信エラー:", err));
-    });
-});
-</script>
+<a href="{{ url_for('reset') }}">リセット</a>
 
 </body>
 </html>
