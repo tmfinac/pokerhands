@@ -1,73 +1,63 @@
-from flask import Flask, render_template, redirect, session, url_for, jsonify
-from collections import Counter
+from flask import Flask, session, render_template, redirect
 
 app = Flask(__name__)
-app.secret_key = "super-secret-key"
+app.secret_key = "your_secret_key"
 
-numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
-suits = ["♠", "♥", "♦", "♣"]  # HTML上で表示
-cards = [n + s for n in numbers for s in suits]
+numbers = ["1","2","3","4","5","6","7","8","9","10","J","Q","K"]
+suits = ["♥", "♦", "♠", "♣"]
 
-num_order = {n: i for i, n in enumerate(numbers, start=1)}
-
-
-def judge_hand(selected):
-    if len(selected) != 5:
+def judge_hand(cards):
+    if len(cards) != 5:
         return ""
-
-    nums = [card[:-1] for card in selected]
-    suits_list = [card[-1] for card in selected]
-
-    counts = Counter(nums)
-    counts_values = sorted(counts.values(), reverse=True)
-
-    is_flush = len(set(suits_list)) == 1
-    num_indices = sorted([num_order[n] for n in nums])
-    is_straight = all(num_indices[i] - num_indices[i - 1] == 1 for i in range(1, 5))
-
-    if is_straight and is_flush:
-        return "ストレートフラッシュ"
-    elif counts_values == [4, 1]:
-        return "フォー・オブ・ア・カインド"
-    elif counts_values == [3, 2]:
+    values = [c[:-1] for c in cards]
+    counts = {v: values.count(v) for v in set(values)}
+    if 3 in counts.values() and 2 in counts.values():
         return "フルハウス"
-    elif is_flush:
-        return "フラッシュ"
-    elif is_straight:
-        return "ストレート"
-    elif counts_values == [3, 1, 1]:
-        return "スリー・オブ・ア・カインド"
-    elif counts_values == [2, 2, 1]:
+    elif 3 in counts.values():
+        return "スリーカード"
+    elif list(counts.values()).count(2) == 2:
         return "ツーペア"
-    elif counts_values == [2, 1, 1, 1]:
+    elif 2 in counts.values():
         return "ワンペア"
     else:
         return "ハイカード"
 
-
 @app.route("/")
 def index():
-    selected = session.get("selected_cards", [])
-    result = judge_hand(selected)
-    return render_template("index.html", cards=cards, selected=selected, result=result)
+    selected_cards = session.get("selected_cards", [])
+    selected_number = session.get("selected_number")
+    result = judge_hand(selected_cards)
+    return render_template("index.html",
+                           selected_cards=selected_cards,
+                           selected_number=selected_number,
+                           numbers=numbers,
+                           suits=suits,
+                           result=result)
 
+@app.route("/select_number/<num>")
+def select_number(num):
+    session["selected_number"] = num
+    return redirect("/")
 
-@app.route("/add_ajax/<card>")
-def add_ajax(card):
+@app.route("/add_card/<suit>")
+def add_card(suit):
+    selected_number = session.get("selected_number")
+    if not selected_number:
+        return redirect("/")
+    card = f"{selected_number}{suit}"
     if "selected_cards" not in session:
         session["selected_cards"] = []
     if len(session["selected_cards"]) < 5:
         session["selected_cards"].append(card)
-        session.modified = True
-    result = judge_hand(session["selected_cards"])
-    return jsonify({"selected": session["selected_cards"], "result": result})
-
+    session["selected_number"] = None
+    session.modified = True
+    return redirect("/")
 
 @app.route("/reset")
 def reset():
-    session["selected_cards"] = []
-    session.modified = True
-    return redirect(url_for("index"))
+    session.pop("selected_cards", None)
+    session.pop("selected_number", None)
+    return redirect("/")
 
 
 if __name__ == "__main__":
