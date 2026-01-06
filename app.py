@@ -9,24 +9,30 @@ app.secret_key = "supersecretkey"
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# 全マーク・カードのリスト
+# マークと数字
 marks = ["H", "D", "S", "C"]
 numbers = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
 cards = [m + n for m in marks for n in numbers]
 
-# 初期化関数
+# セッション初期化
 def init_session():
     session["selected"] = []
     session["current_mark"] = None
 
-# 役判定関数
+# カードコード → 画像ファイル名
+def card_to_filename(card):
+    number_map = {"A": "1", "J": "11", "Q": "12", "K": "13"}
+    number = number_map.get(card[1:], card[1:])
+    return f"{number}{card[0]}.png"
+
+# 役判定
 def judge_hand(selected):
     if len(selected) != 5:
         return ""
-    suits = [card[0] for card in selected]
+    suits = [c[0] for c in selected]
     ranks = []
-    for card in selected:
-        r = card[1:]
+    for c in selected:
+        r = c[1:]
         if r == 'J':
             ranks.append(11)
         elif r == 'Q':
@@ -40,13 +46,11 @@ def judge_hand(selected):
     ranks.sort()
     rank_counts = Counter(ranks)
     counts = sorted(rank_counts.values(), reverse=True)
-    # ストレート判定
     is_straight = ranks == list(range(ranks[0], ranks[0]+5))
     if set(ranks) == {14,2,3,4,5}:
         is_straight = True
-    # フラッシュ判定
     is_flush = len(set(suits)) == 1
-    # 判定順
+
     if is_straight and is_flush and max(ranks) == 14:
         return "ロイヤルストレートフラッシュ"
     if is_straight and is_flush:
@@ -67,21 +71,38 @@ def judge_hand(selected):
         return "ワンペア"
     return "ハイカード"
 
+@app.context_processor
+def utility_processor():
+    return dict(card_to_filename=card_to_filename)
+
 # ルート
 @app.route("/")
 def index():
     if "selected" not in session:
         init_session()
-    return render_template("index.html", marks=marks, current_mark=session.get("current_mark"), selected=session.get("selected"), result="")
+    return render_template(
+        "index.html",
+        marks=marks,
+        current_mark=session.get("current_mark"),
+        selected=session.get("selected"),
+        result=""
+    )
 
 # マーク選択
 @app.route("/select_mark/<mark>")
 def select_mark(mark):
     session["current_mark"] = mark
     mark_cards = [mark + n for n in numbers]
-    return render_template("index.html", marks=marks, current_mark=mark, cards=mark_cards, selected=session.get("selected"), result="")
+    return render_template(
+        "index.html",
+        marks=marks,
+        current_mark=mark,
+        cards=mark_cards,
+        selected=session.get("selected"),
+        result=""
+    )
 
-# カード選択 Ajax
+# Ajaxカード追加
 @app.route("/add_ajax/<card>")
 def add_ajax(card):
     selected = session.get("selected", [])
