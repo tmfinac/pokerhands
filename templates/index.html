@@ -23,6 +23,10 @@
     {% endfor %}
 </div>
 
+{% if result %}
+<p>判定: <strong>{{ result }}</strong></p>
+{% endif %}
+
 <h2>カードを選択</h2>
 <div>
     {% for card in cards %}
