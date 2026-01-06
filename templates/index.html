@@ -17,23 +17,46 @@
 <body>
 
 <h2>選択したカード</h2>
-<div class="slot">
+<div class="slot" id="selected-cards">
     {% for card in selected %}
         <img class="card" src="{{ url_for('static', filename='cards/' + card + '.png') }}">
     {% endfor %}
 </div>
 
 <h2>カードを選択</h2>
-<div>
+<div id="all-cards">
     {% for card in cards %}
-        <a href="/add/{{ card }}">
-            <img class="card" src="{{ url_for('static', filename='cards/' + card + '.png') }}">
-        </a>
+        <img class="card" src="{{ url_for('static', filename='cards/' + card + '.png') }}" onclick="addCard('{{ card }}')">
     {% endfor %}
 </div>
 
 <br>
-<a href="/reset">リセット</a>
+<button onclick="resetCards()">リセット</button>
+
+<script>
+function updateSelected(cards) {
+    const container = document.getElementById('selected-cards');
+    container.innerHTML = '';
+    cards.forEach(card => {
+        const img = document.createElement('img');
+        img.src = `/static/cards/${card}.png`;
+        img.className = 'card';
+        container.appendChild(img);
+    });
+}
+
+function addCard(card) {
+    fetch(`/add/${card}`)
+        .then(response => response.json())
+        .then(data => updateSelected(data.selected));
+}
+
+function resetCards() {
+    fetch(`/reset`)
+        .then(response => response.json())
+        .then(data => updateSelected(data.selected));
+}
+</script>
 
 </body>
 </html>

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect
+from flask import Flask, render_template, jsonify
 
 app = Flask(__name__)
 
@@ -10,21 +10,19 @@ def index():
     return render_template(
         "index.html",
         cards=cards,
-        selected=selected_cards,
-        result=""
+        selected=selected_cards
     )
 
 @app.route("/add/<card>")
 def add(card):
-    if len(selected_cards) < 5:
+    if len(selected_cards) < 5 and card not in selected_cards:
         selected_cards.append(card)
-    return redirect("/")
+    return jsonify({"selected": selected_cards})
 
 @app.route("/reset")
 def reset():
     selected_cards.clear()
-    return redirect("/")
-
+    return jsonify({"selected": selected_cards})
 
 if __name__ == "__main__":
     app.run(debug=True)
