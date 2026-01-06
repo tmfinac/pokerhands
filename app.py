@@ -1,6 +1,7 @@
 from flask import Flask, render_template, session, redirect, url_for, jsonify
 from flask_session import Session
 from collections import Counter
+import time
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -9,30 +10,32 @@ app.secret_key = "supersecretkey"
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# マークと数字
+# 全マーク・カードのリスト
 marks = ["H", "D", "S", "C"]
 numbers = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
 cards = [m + n for m in marks for n in numbers]
 
-# セッション初期化
+# 初期化関数
 def init_session():
     session["selected"] = []
     session["current_mark"] = None
 
-# カードコード → 画像ファイル名
+# カードから画像ファイル名を作成
 def card_to_filename(card):
-    number_map = {"A": "1", "J": "11", "Q": "12", "K": "13"}
-    number = number_map.get(card[1:], card[1:])
-    return f"{number}{card[0]}.png"
+    rank_map = {"A": "1", "J": "11", "Q": "12", "K": "13"}
+    rank = card[1:]
+    if rank in rank_map:
+        rank = rank_map[rank]
+    return f"{rank}{card[0]}.png"
 
-# 役判定
+# 役判定関数
 def judge_hand(selected):
     if len(selected) != 5:
         return ""
-    suits = [c[0] for c in selected]
+    suits = [card[0] for card in selected]
     ranks = []
-    for c in selected:
-        r = c[1:]
+    for card in selected:
+        r = card[1:]
         if r == 'J':
             ranks.append(11)
         elif r == 'Q':
@@ -50,7 +53,6 @@ def judge_hand(selected):
     if set(ranks) == {14,2,3,4,5}:
         is_straight = True
     is_flush = len(set(suits)) == 1
-
     if is_straight and is_flush and max(ranks) == 14:
         return "ロイヤルストレートフラッシュ"
     if is_straight and is_flush:
@@ -71,10 +73,6 @@ def judge_hand(selected):
         return "ワンペア"
     return "ハイカード"
 
-@app.context_processor
-def utility_processor():
-    return dict(card_to_filename=card_to_filename)
-
 # ルート
 @app.route("/")
 def index():
@@ -85,6 +83,7 @@ def index():
         marks=marks,
         current_mark=session.get("current_mark"),
         selected=session.get("selected"),
+        cards=[],
         result=""
     )
 
@@ -102,7 +101,7 @@ def select_mark(mark):
         result=""
     )
 
-# Ajaxカード追加
+# カード選択（Ajax）
 @app.route("/add_ajax/<card>")
 def add_ajax(card):
     selected = session.get("selected", [])
@@ -110,7 +109,9 @@ def add_ajax(card):
         selected.append(card)
     session["selected"] = selected
     result = judge_hand(selected)
-    return jsonify({"selected": selected, "result": result})
+    # 画像URLを追加（キャッシュ対策）
+    selected_imgs = [url_for('static', filename=f'cards/{card_to_filename(c)}', t=int(time.time())) for c in selected]
+    return jsonify({"selected": selected, "result": result, "selected_imgs": selected_imgs})
 
 # リセット
 @app.route("/reset")
