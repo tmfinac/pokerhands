@@ -89,7 +89,7 @@ def add_ajax(card):
         selected.append(card)
     session["selected"] = selected
     result = judge_hand(selected)
-    selected_imgs = [url_for('static', filename='cards/'+card_filename(c), t=int(time.time())) for c in selected]
+    selected_imgs = [url_for('static', filename=f'cards/{card_filename(c)}', t=int(time.time())) for c in selected]
     return jsonify({"selected": selected, "result": result, "selected_imgs": selected_imgs})
 
 # リセット
