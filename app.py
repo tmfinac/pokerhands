@@ -11,18 +11,21 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 marks = ["H", "D", "S", "C"]
-numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+numbers = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
 
 # 初期化
 def init_session():
     session["selected"] = []
     session["current_mark"] = None
 
+
 # カードから画像ファイル名
 def card_filename(card):
+    mark = card[0]
+    rank = card[1:]
     rank_map = {'A':'1','J':'11','Q':'12','K':'13'}
-    rank_num = rank_map.get(card[1:], card[1:])
-    return f"{rank_num}{card[0]}.png"
+    rank_num = rank_map.get(rank, rank)  # rank が "2"〜"10" ならそのまま
+    return f"{rank_num}{mark}.png"
 
 app.jinja_env.globals.update(card_filename=card_filename)
 
