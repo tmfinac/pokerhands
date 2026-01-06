@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>5カードポーカー役判定</title>
+    <title>Poker Hands</title>
     <style>
         img.card {
             width: 80px;
@@ -11,6 +11,10 @@
         }
         .slot {
             margin-bottom: 20px;
+        }
+        button {
+            padding: 5px 10px;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -24,38 +28,46 @@
 </div>
 
 <h2>カードを選択</h2>
-<div id="all-cards">
+<div>
     {% for card in cards %}
-        <img class="card" src="{{ url_for('static', filename='cards/' + card + '.png') }}" onclick="addCard('{{ card }}')">
+        <img class="card selectable" data-card="{{ card }}" src="{{ url_for('static', filename='cards/' + card + '.png') }}">
     {% endfor %}
 </div>
 
 <br>
-<button onclick="resetCards()">リセット</button>
+<button id="reset-btn">リセット</button>
 
 <script>
-function updateSelected(cards) {
-    const container = document.getElementById('selected-cards');
-    container.innerHTML = '';
-    cards.forEach(card => {
-        const img = document.createElement('img');
-        img.src = `/static/cards/${card}.png`;
-        img.className = 'card';
-        container.appendChild(img);
+document.addEventListener("DOMContentLoaded", () => {
+    const selectedDiv = document.getElementById("selected-cards");
+
+    // カード選択
+    document.querySelectorAll(".selectable").forEach(card => {
+        card.addEventListener("click", () => {
+            const cardValue = card.dataset.card;
+            fetch(`/add/${cardValue}`)
+                .then(res => res.json())
+                .then(data => {
+                    selectedDiv.innerHTML = "";
+                    data.forEach(c => {
+                        const img = document.createElement("img");
+                        img.src = `/static/cards/${c}.png`;
+                        img.className = "card";
+                        selectedDiv.appendChild(img);
+                    });
+                });
+        });
     });
-}
 
-function addCard(card) {
-    fetch(`/add/${card}`)
-        .then(response => response.json())
-        .then(data => updateSelected(data.selected));
-}
-
-function resetCards() {
-    fetch(`/reset`)
-        .then(response => response.json())
-        .then(data => updateSelected(data.selected));
-}
+    // リセットボタン
+    document.getElementById("reset-btn").addEventListener("click", () => {
+        fetch("/reset")
+            .then(res => res.json())
+            .then(data => {
+                selectedDiv.innerHTML = "";
+            });
+    });
+});
 </script>
 
 </body>

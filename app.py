@@ -7,22 +7,20 @@ selected_cards = []
 
 @app.route("/")
 def index():
-    return render_template(
-        "index.html",
-        cards=cards,
-        selected=selected_cards
-    )
+    return render_template("index.html", cards=cards, selected=selected_cards)
 
 @app.route("/add/<card>")
 def add(card):
-    if len(selected_cards) < 5 and card not in selected_cards:
+    if len(selected_cards) < 5:
         selected_cards.append(card)
-    return jsonify({"selected": selected_cards})
+    # JSONで選択カードを返す
+    return jsonify(selected=selected_cards)
 
 @app.route("/reset")
 def reset():
     selected_cards.clear()
-    return jsonify({"selected": selected_cards})
+    return jsonify(selected=selected_cards)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
