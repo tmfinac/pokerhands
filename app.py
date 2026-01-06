@@ -12,7 +12,7 @@ Session(app)
 
 # 全マーク・カードのリスト
 marks = ["H", "D", "S", "C"]
-numbers = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
 cards = [m + n for m in marks for n in numbers]
 
 # 初期化関数
