@@ -20,13 +20,19 @@ def init_session():
     session["selected"] = []
     session["current_mark"] = None
 
+
 # カードから画像ファイル名を作成
-def card_to_filename(card):
-    rank_map = {"A": "1", "J": "11", "Q": "12", "K": "13"}
+def card_filename(card):
+    """カード文字列からPNGファイル名を返す"""
+    mark = card[0]
     rank = card[1:]
-    if rank in rank_map:
-        rank = rank_map[rank]
-    return f"{rank}{card[0]}.png"
+    rank_map = {'A':'1','J':'11','Q':'12','K':'13'}
+    rank_num = rank_map.get(rank, rank)
+    return f"{rank_num}{mark}.png"
+
+# テンプレートで使えるように登録
+app.jinja_env.globals.update(card_filename=card_filename)
+
 
 # 役判定関数
 def judge_hand(selected):
@@ -92,14 +98,18 @@ def index():
 def select_mark(mark):
     session["current_mark"] = mark
     mark_cards = [mark + n for n in numbers]
-    return render_template(
-        "index.html",
-        marks=marks,
-        current_mark=mark,
-        cards=mark_cards,
-        selected=session.get("selected"),
-        result=""
-    )
+    # キャッシュ回避用に timestamp 付与
+    mark_cards_images = [
+        url_for('static', filename='cards/' + card_filename(card), t=int(time.time()))
+        for card in mark_cards
+    ]
+    return render_template("index.html",
+                           marks=marks,
+                           current_mark=mark,
+                           cards=mark_cards,
+                           cards_images=mark_cards_images,
+                           selected=session.get("selected"),
+                           result="")
 
 # カード選択（Ajax）
 @app.route("/add_ajax/<card>")
