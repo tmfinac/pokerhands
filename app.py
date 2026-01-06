@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, redirect, url_for, jsonify, request
+from flask import Flask, render_template, session, redirect, url_for, jsonify
 from flask_session import Session
 from collections import Counter
 
@@ -46,7 +46,7 @@ def judge_hand(selected):
         is_straight = True
     # フラッシュ判定
     is_flush = len(set(suits)) == 1
-    # 判定順（強い役から）
+    # 判定順
     if is_straight and is_flush and max(ranks) == 14:
         return "ロイヤルストレートフラッシュ"
     if is_straight and is_flush:
@@ -67,21 +67,21 @@ def judge_hand(selected):
         return "ワンペア"
     return "ハイカード"
 
-# ルート（マーク選択ページ）
+# ルート
 @app.route("/")
 def index():
     if "selected" not in session:
         init_session()
     return render_template("index.html", marks=marks, current_mark=session.get("current_mark"), selected=session.get("selected"), result="")
 
-# マークを選択 → そのマークのカードを表示
+# マーク選択
 @app.route("/select_mark/<mark>")
 def select_mark(mark):
     session["current_mark"] = mark
     mark_cards = [mark + n for n in numbers]
     return render_template("index.html", marks=marks, current_mark=mark, cards=mark_cards, selected=session.get("selected"), result="")
 
-# カードを選択（Ajax用）
+# カード選択 Ajax
 @app.route("/add_ajax/<card>")
 def add_ajax(card):
     selected = session.get("selected", [])
