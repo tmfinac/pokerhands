@@ -4,31 +4,98 @@
     <meta charset="UTF-8">
     <title>5カードポーカー役判定</title>
     <style>
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
         img.card {
             width: 80px;
             margin: 5px;
             cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 5px;
         }
-        .slot {
-            margin-bottom: 20px;
+
+        img.card:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .result {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #ff5722;
+            margin: 20px 0;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+
+        button {
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #1976d2;
+            transform: scale(1.05);
+        }
+
+        /* レスポンシブ調整 */
+        @media (max-width: 500px) {
+            img.card {
+                width: 60px;
+                margin: 3px;
+            }
+
+            .result {
+                font-size: 1.6em;
+            }
+
+            button {
+                padding: 10px 20px;
+            }
         }
     </style>
 </head>
 <body>
 
 <h2>選択したカード</h2>
-<div class="slot">
+<div class="cards-container slot">
     {% for card in selected %}
         <img class="card" src="{{ url_for('static', filename='cards/' + card + '.png') }}">
     {% endfor %}
 </div>
 
 {% if result %}
-<p>判定: <strong>{{ result }}</strong></p>
+<p class="result">判定: {{ result }}</p>
 {% endif %}
 
 <h2>カードを選択</h2>
-<div>
+<div class="cards-container">
     {% for card in cards %}
         <a href="{{ url_for('add', card=card) }}">
             <img class="card" src="{{ url_for('static', filename='cards/' + card + '.png') }}">
@@ -36,8 +103,9 @@
     {% endfor %}
 </div>
 
-<br>
-<a href="{{ url_for('reset') }}">リセット</a>
+<form action="{{ url_for('reset') }}" method="get" style="margin-top: 20px;">
+    <button type="submit">リセット</button>
+</form>
 
 </body>
 </html>

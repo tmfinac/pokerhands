@@ -43,7 +43,7 @@ def judge_hand(selected):
     elif values == list(range(values[0], values[0] + 5)):
         return "ストレート"
     else:
-        return "ハイカード"
+        return "ハイカード（役ではありません）"
 
 
 @app.route("/")
